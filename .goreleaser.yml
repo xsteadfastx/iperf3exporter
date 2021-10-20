@@ -58,3 +58,30 @@ dockers:
       - ghcr.io/xsteadfastx/iperf3exporter:latest
       - ghcr.io/xsteadfastx/iperf3exporter:{{ .Tag }}
       - ghcr.io/xsteadfastx/iperf3exporter:v{{ .Major}}
+
+nfpms:
+  - formats:
+      - apk
+      - deb
+      - rpm
+    replacements:
+      386: i386
+    homepage: https://go.xsfx.dev/iperf3exporter
+    maintainer: Marvin Preuss <marvin@xsteadfastx.org>
+    dependencies:
+      - iperf3
+    bindir: /usr/local/bin
+    contents:
+      - src: init/openrc/iperf3exporter.init
+        dst: /etc/init.d/iperf3exporter
+        packager: apk
+        file_info:
+          mode: 0755
+          owner: root
+          group: root
+      - src: init/systemd/iperf3exporter.service
+        dst: /etc/systemd/system/iperf3exporter.service
+        packager: deb
+      - src: init/systemd/iperf3exporter.service
+        dst: /etc/systemd/system/iperf3exporter.service
+        packager: rpm

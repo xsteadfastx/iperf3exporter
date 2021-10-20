@@ -1,0 +1,14 @@
+[Unit]
+Description=A iperf3 speedtest exporter for prometheus
+After=network-online.target nss-lookup.target
+Wants=network-online.target nss-lookup.target
+
+[Service]
+Type=simple
+User=nobody
+Restart=always
+RestartSec=1
+ExecStart=/usr/local/bin/iperf3exporter
+
+[Install]
+WantedBy=multi-user.target

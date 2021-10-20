@@ -1,0 +1,16 @@
+#!/sbin/openrc-run
+
+supervisor=supervise-daemon
+
+name="$RC_SVCNAME"
+description="A iperf3 speedtest exporter for prometheus"
+command="/usr/local/bin/iperf3exporter"
+command_args="--listen=0.0.0.0:9119"
+command_user="nobody"
+pidfile="/run/$RC_SVCNAME.pid"
+command_background="yes"
+
+depend() {
+        need net
+        use dns
+}
