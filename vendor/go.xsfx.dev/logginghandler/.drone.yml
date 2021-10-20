@@ -1,0 +1,34 @@
+---
+kind: pipeline
+name: default
+type: docker
+
+steps:
+  - name: fetch
+    image: alpine/git
+    commands:
+      - git fetch --tags
+
+  - name: test
+    image: golang
+    commands:
+      - make test
+
+  - name: lint
+    image: golangci/golangci-lint:v1.31-alpine
+    commands:
+      - apk add --no-cache make
+      - make lint
+
+  - name: release
+    image: golang
+    environment:
+      GITEA_TOKEN:
+        from_secret: gitea_token
+    commands:
+      - curl -sL https://git.io/goreleaser | bash
+    depends_on:
+      - test
+      - lint
+    when:
+      event: tag

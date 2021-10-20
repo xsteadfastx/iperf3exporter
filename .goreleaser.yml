@@ -1,0 +1,60 @@
+---
+builds:
+  - env:
+      - CGO_ENABLED=0
+
+    ldflags:
+      - "-s"
+      - "-w"
+      - "-extldflags '-static'"
+      - "-X main.version={{.Version}}"
+      - "-X main.commit={{.ShortCommit}}"
+      - "-X main.date={{.Date}}"
+
+    goos:
+      - linux
+
+    goarch:
+      - amd64
+      - arm64
+      - 386
+      - arm
+
+    goarm:
+      - 5
+      - 6
+      - 7
+
+checksum:
+  name_template: "checksums.txt"
+
+snapshot:
+  name_template: "{{.Tag}}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^ci:"
+      - "^lint:"
+      - "^meta:"
+      - "^deployment"
+      - "happy linting"
+      - "prepares release"
+      - "first commit"
+
+release:
+  github:
+    owner: xsteadfastx
+    name: iperf3exporter
+
+dockers:
+  - dockerfile: build/package/docker/Dockerfile
+    goos: linux
+    goarch: amd64
+    image_templates:
+      - ghcr.io/xsteadfastx/iperf3exporter:latest
+      - ghcr.io/xsteadfastx/iperf3exporter:{{ .Tag }}
+      - ghcr.io/xsteadfastx/iperf3exporter:v{{ .Major}}

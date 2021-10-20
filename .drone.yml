@@ -1,0 +1,124 @@
+---
+kind: pipeline
+name: default
+
+golang-image: &golang-image golang:1.17-alpine
+
+gobin-volume: &gobin-volume
+  name: gobin
+  path: /go/bin
+
+usr-volume: &usr-volume
+  name: usr
+  path: /usr
+
+docker-volume: &docker-volume
+  name: dockersock
+  path: /var/run
+
+deps-command: &deps-command apk add build-base git docker
+
+steps:
+  - name: tags
+    image: alpine/git
+    commands:
+      - git fetch --tags
+
+  - name: install-tools
+    image: *golang-image
+    volumes:
+      - *gobin-volume
+      - *usr-volume
+    commands:
+      - *deps-command
+      - make install-tools
+
+  - name: lint
+    image: *golang-image
+    volumes:
+      - *gobin-volume
+      - *usr-volume
+    commands:
+      - make lint
+    depends_on:
+      - tags
+      - install-tools
+
+  - name: test
+    image: *golang-image
+    volumes:
+      - *gobin-volume
+      - *usr-volume
+    commands:
+      - make test
+      - make coverage
+    depends_on:
+      - install-tools
+      - tags
+      - lint
+
+  - name: build
+    image: *golang-image
+    volumes:
+      - *gobin-volume
+      - *usr-volume
+    commands:
+      - make build
+    depends_on:
+      - tags
+      - lint
+      - test
+      - install-tools
+    when:
+      event:
+        exclude:
+          - tag
+
+  - name: release
+    image: *golang-image
+    volumes:
+      - *gobin-volume
+      - *usr-volume
+      - *docker-volume
+    environment:
+      GITHUB_TOKEN:
+        from_secret: github_token
+    commands:
+      - docker ps -a
+      - goreleaser release --rm-dist
+    depends_on:
+      - tags
+      - lint
+      - test
+      - install-tools
+    when:
+      event:
+        - tag
+
+  - name: slack
+    image: plugins/slack
+    settings:
+      webhook:
+        from_secret: slack_webhook_url
+      channel: xsfx-alerts
+    depends_on:
+      - build
+      - release
+
+services:
+  - name: docker
+    image: docker:dind
+    privileged: true
+    volumes:
+      - name: dockersock
+        path: /var/run
+
+volumes:
+  - name: gobin
+    temp: {}
+
+  - name: usr
+    temp: {}
+
+  - name: dockersock
+    temp: {}
