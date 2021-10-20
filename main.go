@@ -269,7 +269,7 @@ func init() { //nolint:gochecknoinits,funlen
 	viper.SetDefault("log.json", false)
 
 	// Log.Colors.
-	rootCmd.PersistentFlags().Bool("log-colors", true, "colorful log output")
+	rootCmd.PersistentFlags().Bool("log.colors", true, "colorful log output")
 
 	if err := viper.BindPFlag("log.colors", rootCmd.PersistentFlags().Lookup("log-colors")); err != nil {
 		log.Fatal().Err(err).Msg("could not bind flag")
