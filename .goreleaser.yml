@@ -41,6 +41,7 @@ changelog:
       - "^lint"
       - "^meta"
       - "^deployment"
+      - "^build"
       - "happy linting"
       - "prepares release"
       - "first commit"
