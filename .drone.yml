@@ -84,6 +84,7 @@ steps:
       GITHUB_TOKEN:
         from_secret: github_token
     commands:
+      - /bin/sh -c "echo $GITHUB_TOKEN | docker login ghcr.io -u xsteadfastx --password-stdin"
       - docker ps -a
       - goreleaser release --rm-dist
     depends_on:
