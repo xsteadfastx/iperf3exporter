@@ -1,6 +1,6 @@
 # IPERF3EXPORTER
 
-[![Build Status](https://ci.xsfx.dev/api/badges/xsteadfastx/iperf3exporter/status.svg)](https://ci.xsfx.dev/xsteadfastx/iperf3exporter)
+[![Build Status](https://ci.xsfx.dev/api/badges/xsteadfastx/iperf3exporter/status.svg)](https://ci.xsfx.dev/xsteadfastx/iperf3exporter?ref=refs/heads/main)
 [![Go Reference](https://pkg.go.dev/badge/go.xsfx.dev/iperf3exporter.svg)](https://pkg.go.dev/go.xsfx.dev/iperf3exporter)
 
 A iperf3 speedtest exporter for prometheus
