@@ -51,14 +51,14 @@ release:
     name: iperf3exporter
 
 archives:
-  # - format: tar.gz
-  #   replacements:
-  #     darwin: macos
-
-  - format: binary
-    id: binary-archive
+  - format: tar.gz
     replacements:
       darwin: macos
+
+  # - format: binary
+  #   id: binary-archive
+  #   replacements:
+  #     darwin: macos
 
 dockers:
   - dockerfile: build/package/docker/Dockerfile
