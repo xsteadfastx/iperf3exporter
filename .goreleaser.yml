@@ -35,11 +35,11 @@ changelog:
   sort: asc
   filters:
     exclude:
-      - "^docs:"
-      - "^test:"
-      - "^ci:"
-      - "^lint:"
-      - "^meta:"
+      - "^docs"
+      - "^test"
+      - "^ci"
+      - "^lint"
+      - "^meta"
       - "^deployment"
       - "happy linting"
       - "prepares release"
