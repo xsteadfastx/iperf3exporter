@@ -67,7 +67,7 @@ dockers:
     image_templates:
       - ghcr.io/xsteadfastx/iperf3exporter:latest
       - ghcr.io/xsteadfastx/iperf3exporter:{{ .Tag }}
-      - ghcr.io/xsteadfastx/iperf3exporter:v{{ .Major}}
+      - ghcr.io/xsteadfastx/iperf3exporter:{{ .Major}}
 
 nfpms:
   - formats:
