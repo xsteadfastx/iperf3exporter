@@ -48,12 +48,16 @@ const (
 	Checksum
 	// Signature is a signature file.
 	Signature
+	// Certificate is a signing certificate file
+	Certificate
 	// UploadableSourceArchive is the archive with the current commit source code.
 	UploadableSourceArchive
 	// BrewTap is an uploadable homebrew tap recipe file.
 	BrewTap
 	// GoFishRig is an uploadable Rigs rig food file.
 	GoFishRig
+	// KrewPluginManifest is a krew plugin manifest file.
+	KrewPluginManifest
 	// ScoopManifest is an uploadable scoop manifest file.
 	ScoopManifest
 )
@@ -78,18 +82,32 @@ func (t Type) String() string {
 		return "Checksum"
 	case Signature:
 		return "Signature"
+	case Certificate:
+		return "Certificate"
 	case UploadableSourceArchive:
 		return "Source"
 	case BrewTap:
 		return "Brew Tap"
 	case GoFishRig:
 		return "GoFish Rig"
+	case KrewPluginManifest:
+		return "Krew Plugin Manifest"
 	case ScoopManifest:
 		return "Scoop Manifest"
 	default:
 		return "unknown"
 	}
 }
+
+const (
+	ExtraID        = "ID"
+	ExtraBinary    = "Binary"
+	ExtraExt       = "Ext"
+	ExtraBuilds    = "Builds"
+	ExtraFormat    = "Format"
+	ExtraWrappedIn = "WrappedIn"
+	ExtraBinaries  = "Binaries"
+)
 
 // Artifact represents an artifact and its relevant info.
 type Artifact struct {
@@ -145,6 +163,16 @@ func (a Artifact) Checksum(algorithm string) (string, error) {
 		return "", fmt.Errorf("failed to checksum: %w", err)
 	}
 	return hex.EncodeToString(h.Sum(nil)), nil
+}
+
+// ID returns the artifact ID if it exists, empty otherwise.
+func (a Artifact) ID() string {
+	return a.ExtraOr(ExtraID, "").(string)
+}
+
+// Format returns the artifact Format if it exists, empty otherwise.
+func (a Artifact) Format() string {
+	return a.ExtraOr(ExtraFormat, "").(string)
 }
 
 // Artifacts is a list of artifacts.
@@ -252,7 +280,7 @@ func ByFormats(formats ...string) Filter {
 	for _, format := range formats {
 		format := format
 		filters = append(filters, func(a *Artifact) bool {
-			return a.ExtraOr("Format", "") == format
+			return a.Format() == format
 		})
 	}
 	return Or(filters...)
@@ -267,7 +295,7 @@ func ByIDs(ids ...string) Filter {
 			// checksum and source archive are always for all artifacts, so return always true.
 			return a.Type == Checksum ||
 				a.Type == UploadableSourceArchive ||
-				a.ExtraOr("ID", "") == id
+				a.ID() == id
 		})
 	}
 	return Or(filters...)
