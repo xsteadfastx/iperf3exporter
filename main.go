@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/VictoriaMetrics/metrics"
+	"github.com/go-playground/validator/v10"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
@@ -47,16 +48,16 @@ var rootCmd = &cobra.Command{
 // config is a struct that a config file can get unmarshaled to.
 type config struct {
 	Exporter struct {
-		Listen         string
-		Timeout        time.Duration
-		ProcessMetrics bool `mapstructure:"process_metrics"`
+		Listen         string        `validate:"required,hostname_port"`
+		Timeout        time.Duration `validate:"required,gt=0"`
+		ProcessMetrics bool          `mapstructure:"process_metrics" validate:"required"`
 	}
 	Log struct {
 		JSON   bool
-		Colors bool
+		Colors bool `validate:"required"`
 	}
 	Iperf3 struct {
-		Time int
+		Time int `validate:"required"`
 	}
 }
 
@@ -376,6 +377,25 @@ func initConfig() {
 	}
 
 	log.Logger = log.With().Caller().Logger()
+
+	// Valite config.
+	validate := validator.New()
+	if err := validate.Struct(c); err != nil {
+		var validationErrors validator.ValidationErrors
+
+		if errors.As(err, &validationErrors) {
+			for _, e := range validationErrors {
+				log.Error().
+					Str("tag", e.Tag()).
+					Str("name", e.StructNamespace()).
+					Interface("value", e.Value()).
+					Str("kind", e.Kind().String()).
+					Msg("config error")
+			}
+		}
+
+		log.Fatal().Msg("config validation error")
+	}
 }
 
 func main() {
