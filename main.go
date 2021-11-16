@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -101,11 +102,59 @@ type iperfResult struct {
 	} `json:"end"`
 }
 
-func runIperf(ctx context.Context, target string, cmdArgs []string, logger zerolog.Logger) (iperfResult, error) {
+type Target struct {
+	Host string
+	Port int
+}
+
+var (
+	ErrEmptyTarget             = errors.New("empty target")
+	ErrCouldNotDetermineTarget = errors.New("could not determine target")
+)
+
+func NewTarget(t string) (Target, error) {
+	targetParts := strings.Split(t, ":")
+
+	var trg Target
+
+	//nolint:gomnd
+	switch s := len(targetParts); {
+	case s > 2:
+		// http.Error(w, "could not determine host and port", http.StatusUnprocessableEntity)
+		return trg, ErrCouldNotDetermineTarget
+	case s == 2:
+		p, err := strconv.Atoi(targetParts[1])
+		if err != nil {
+			return trg, fmt.Errorf("could not convert port string to int: %w", err)
+		}
+
+		trg = Target{
+			Host: targetParts[0],
+			Port: p,
+		}
+	case s == 1:
+		// Using default port.
+		trg = Target{
+			Host: targetParts[0],
+			Port: 5201,
+		}
+	}
+
+	// Check for empty struct.
+	if trg.Host == "" || trg.Port == 0 {
+		return Target{}, ErrEmptyTarget
+	}
+
+	return trg, nil
+}
+
+func runIperf(ctx context.Context, t Target, cmdArgs []string, logger zerolog.Logger) (iperfResult, error) {
 	args := []string{
 		"-J",
 		"-c",
-		target,
+		t.Host,
+		"-p",
+		fmt.Sprintf("%d", t.Port),
 		"-t", strconv.Itoa(c.Iperf3.Time),
 	}
 
@@ -138,10 +187,10 @@ func runIperf(ctx context.Context, target string, cmdArgs []string, logger zerol
 	return p, nil
 }
 
-func download(ctx context.Context, target string, logger zerolog.Logger) error {
+func download(ctx context.Context, t Target, logger zerolog.Logger) error {
 	r, err := runIperf(
 		ctx,
-		target,
+		t,
 		[]string{"-R"},
 		logger,
 	)
@@ -160,10 +209,10 @@ func download(ctx context.Context, target string, logger zerolog.Logger) error {
 	return nil
 }
 
-func upload(ctx context.Context, target string, logger zerolog.Logger) error {
+func upload(ctx context.Context, t Target, logger zerolog.Logger) error {
 	r, err := runIperf(
 		ctx,
-		target,
+		t,
 		[]string{},
 		logger,
 	)
@@ -186,23 +235,30 @@ func probeHandler(w http.ResponseWriter, r *http.Request) {
 	logger := logginghandler.Logger(r)
 
 	// Extract target.
-	target := r.URL.Query().Get("target")
+	trgt := r.URL.Query().Get("target")
 
-	if target == "" {
+	if trgt == "" {
 		logger.Error().Msg("could not find target in url params")
 		http.Error(w, "could not find target in url params", http.StatusUnprocessableEntity)
 
 		return
 	}
 
-	logger.Debug().Str("target", target).Msg("extracted target from url params")
+	logger.Debug().Str("trgt", trgt).Msg("extracted target from url params")
+
+	// Extract port and host for target.
+	t, err := NewTarget(trgt)
+	if err != nil {
+		logger.Error().Err(err).Msg("could not determine target")
+		http.Error(w, "could not determine target", http.StatusUnprocessableEntity)
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), c.Exporter.Timeout)
 	defer cancel()
 
 	logger.Info().Msg("getting download metrics")
 
-	if err := download(ctx, target, logger); err != nil {
+	if err := download(ctx, t, logger); err != nil {
 		logger.Error().Err(err).Msg("could not create download metrics")
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 
@@ -211,7 +267,7 @@ func probeHandler(w http.ResponseWriter, r *http.Request) {
 
 	logger.Info().Msg("getting upload metrics")
 
-	if err := upload(ctx, target, logger); err != nil {
+	if err := upload(ctx, t, logger); err != nil {
 		logger.Error().Err(err).Msg("could not create upload metrics")
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 
@@ -257,7 +313,7 @@ func init() { //nolint:gochecknoinits,funlen
 		log.Fatal().Err(err).Msg("could not bind flag")
 	}
 
-	viper.SetDefault("exporter.processmetrics", true)
+	viper.SetDefault("exporter.process_metrics", true)
 
 	// Log.JSON.
 	rootCmd.PersistentFlags().Bool("log-json", false, "JSON log output")
