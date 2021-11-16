@@ -12,11 +12,13 @@ generate:
 
 .PHONY: lint
 lint:
-	golangci-lint run --enable-all --disable=exhaustivestruct,godox
+	golangci-lint run \
+		--enable-all \
+		--disable=exhaustivestruct,godox,varnamelen
 
 .PHONY: test
 test:
-	go test -v -race -cover -coverprofile=coverage.out -tags=integration ./... -timeout=120m
+	go test -v -race -cover -coverprofile=coverage.out
 
 .PHONY: coverage
 coverage: test
