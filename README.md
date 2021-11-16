@@ -1,11 +1,17 @@
-# IPERF3EXPORTER
-
-[![Build Status](https://ci.xsfx.dev/api/badges/xsteadfastx/iperf3exporter/status.svg?ref=refs/heads/main)](https://ci.xsfx.dev/xsteadfastx/iperf3exporter)
-[![Go Reference](https://pkg.go.dev/badge/go.xsfx.dev/iperf3exporter.svg)](https://pkg.go.dev/go.xsfx.dev/iperf3exporter)
+<h1 align="center">🚄 IPERF3EXPORTER 💨</h1>
+<div align="center">
 
 A iperf3 speedtest exporter for prometheus
 
+[![Build Status](https://ci.xsfx.dev/api/badges/xsteadfastx/iperf3exporter/status.svg?ref=refs/heads/main)](https://ci.xsfx.dev/xsteadfastx/iperf3exporter)
+[![Go Reference](https://pkg.go.dev/badge/go.xsfx.dev/iperf3exporter.svg)](https://pkg.go.dev/go.xsfx.dev/iperf3exporter)
+[![made-with-Go](https://img.shields.io/badge/Made%20with-Go-1f425f.svg)](http://golang.org)
+[![GitHub go.mod Go version of a Go module](https://img.shields.io/github/go-mod/go-version/xsteadfastx/iperf3exporter.svg)](https://github.com/xsteadfastx/iperf3exporter)
+[![Go Report Card](https://goreportcard.com/badge/go.xsfx.dev/iperf3exporter)](https://goreportcard.com/report/go.xsfx.dev/iperf3exporter)
+
 ![readme](./README.gif)
+
+</div>
 
 It runs the `iperf3` command as client. Once as server sends/client receives and once as client sends/server receives. It parses the JSON output and exports them as prometheus metrics.
 
@@ -14,8 +20,10 @@ It runs the `iperf3` command as client. Once as server sends/client receives and
 ### via docker
 
 ```shell
-docker run -d --name iperf3exporter ghcr.io/xsteadfastx/iperf3exporter:0.1.1
+docker run -d --name iperf3exporter ghcr.io/xsteadfastx/iperf3exporter:latest
 ```
+
+**Notice**: Please use a fixed version for productive use!
 
 ### via package
 
@@ -77,7 +85,34 @@ IPERF3EXPORTER_IPERF3_TIME=10 /usr/local/bin/iperf3exporter
 
 ## Example prometheus config
 
-You can find a scrape config example [here](./test/prometheus.yml). This is the config that gets spun up while testing things for me locally. It replaces the targets with the real exporter adress and adds a label `host` that can be used to identify the scrape boxes and not just the iperf3 servers to test against.
+```yaml
+scrape_configs:
+  - job_name: speedtest-myfunnybox
+    scrape_interval: 2m # maybe a even higher interval would be useful. not fill the whole traffic just with speedtests ;-)
+    scrape_timeout: 1m # a little higher timeout. because the scrape can take a while
+    metrics_path: /probe
+    static_configs:
+      - targets:
+          - speedtest.wobcom.de # default port 5201 is used
+          - footest.bar.tld:1234 # target with defined port
+    relabel_configs:
+      # takes the address from the targets and uses it as url parameter key `target`
+      - source_labels: [__address__]
+        target_label: __param_target
+
+      # takes that address and stores it in the label `instance`
+      - source_labels: [__param_target]
+        target_label: instance
+
+      # replaces the scrape address with the real hostname:port of the exporter.
+      # so it can use the targets for defining the iperf3 servers to use.
+      - target_label: __address__
+        replacement: 192.168.39.191:9119
+```
+
+In this example it replaces the targets with the real exporter adress and adds a label `host` that can be used to identify the scrape boxes and not just the iperf3 servers to test against.
+
+You can specify a port for the iperf3 server target. If its not set, it will use the default port `5201`.
 
 ## Exposed metrics
 
