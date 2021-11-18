@@ -86,7 +86,7 @@ steps:
     commands:
       - /bin/sh -c "echo $GITHUB_TOKEN | docker login ghcr.io -u xsteadfastx --password-stdin"
       - docker ps -a
-      - goreleaser release --rm-dist
+      - goreleaser --debug release --rm-dist
     depends_on:
       - tags
       - lint
