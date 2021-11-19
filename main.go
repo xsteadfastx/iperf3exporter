@@ -73,6 +73,7 @@ var (
 	downloadSentBitsPerSecond     = metrics.NewFloatCounter("iperf3_download_sent_bits_per_second")
 	downloadSentSeconds           = metrics.NewFloatCounter("iperf3_download_sent_seconds")
 	downloadSentBytes             = metrics.NewFloatCounter("iperf3_download_sent_bytes")
+	downloadSentRetransmits       = metrics.NewFloatCounter("iperf3_download_sent_retransmits")
 	downloadReceivedBitsPerSecond = metrics.NewFloatCounter("iperf3_download_received_bits_per_second")
 	downloadReceivedSeconds       = metrics.NewFloatCounter("iperf3_download_received_seconds")
 	downloadReceivedBytes         = metrics.NewFloatCounter("iperf3_download_received_bytes")
@@ -82,6 +83,7 @@ var (
 	uploadSentBitsPerSecond     = metrics.NewFloatCounter("iperf3_upload_sent_bits_per_second")
 	uploadSentSeconds           = metrics.NewFloatCounter("iperf3_upload_sent_seconds")
 	uploadSentBytes             = metrics.NewFloatCounter("iperf3_upload_sent_bytes")
+	uploadSentRetransmits       = metrics.NewFloatCounter("iperf3_upload_sent_retransmits")
 	uploadReceivedBitsPerSecond = metrics.NewFloatCounter("iperf3_upload_received_bits_per_second")
 	uploadReceivedSeconds       = metrics.NewFloatCounter("iperf3_upload_received_seconds")
 	uploadReceivedBytes         = metrics.NewFloatCounter("iperf3_upload_received_bytes")
@@ -94,6 +96,7 @@ type iperfResult struct {
 			Seconds       float64 `json:"seconds"`
 			Bytes         float64 `json:"bytes"`
 			BitsPerSecond float64 `json:"bits_per_second"`
+			Retransmits   int     `json:"retransmits"`
 		} `json:"sum_sent"`
 		SumReceived struct {
 			Seconds       float64 `json:"seconds"`
@@ -202,6 +205,7 @@ func download(ctx context.Context, t Target, logger zerolog.Logger) error {
 	downloadSentBitsPerSecond.Set(r.End.SumSent.BitsPerSecond)
 	downloadSentBytes.Set(r.End.SumSent.Bytes)
 	downloadSentSeconds.Set(r.End.SumSent.Seconds)
+	downloadSentRetransmits.Set(float64(r.End.SumSent.Retransmits))
 
 	downloadReceivedBitsPerSecond.Set(r.End.SumReceived.BitsPerSecond)
 	downloadReceivedBytes.Set(r.End.SumReceived.Bytes)
@@ -224,6 +228,7 @@ func upload(ctx context.Context, t Target, logger zerolog.Logger) error {
 	uploadSentBitsPerSecond.Set(r.End.SumSent.BitsPerSecond)
 	uploadSentBytes.Set(r.End.SumSent.Bytes)
 	uploadSentSeconds.Set(r.End.SumSent.Seconds)
+	uploadSentRetransmits.Set(float64(r.End.SumSent.Retransmits))
 
 	uploadReceivedBitsPerSecond.Set(r.End.SumReceived.BitsPerSecond)
 	uploadReceivedBytes.Set(r.End.SumReceived.Bytes)
