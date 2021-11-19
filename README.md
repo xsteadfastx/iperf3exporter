@@ -121,12 +121,14 @@ You can specify a port for the iperf3 server target. If its not set, it will use
 | iperf3_download_sent_bits_per_second     | gauge |
 | iperf3_download_sent_seconds             | gauge |
 | iperf3_download_sent_bytes               | gauge |
+| iperf3_download_sent_retransmits         | gauge |
 | iperf3_download_received_bits_per_second | gauge |
 | iperf3_download_received_seconds         | gauge |
 | iperf3_download_received_bytes           | gauge |
 | iperf3_upload_sent_bits_per_second       | gauge |
 | iperf3_upload_sent_seconds               | gauge |
 | iperf3_upload_sent_bytes                 | gauge |
+| iperf3_upload_sent_retransmits           | gauge |
 | iperf3_upload_received_bits_per_second   | gauge |
 | iperf3_upload_received_seconds           | gauge |
 | iperf3_upload_received_bytes             | gauge |
