@@ -17,13 +17,13 @@ builds:
     goarch:
       - amd64
       - arm64
-      - 386
+      - "386"
       - arm
 
     goarm:
-      - 5
-      - 6
-      - 7
+      - "5"
+      - "6"
+      - "7"
 
 checksum:
   name_template: "checksums.txt"
@@ -45,6 +45,7 @@ changelog:
       - "happy linting"
       - "prepares release"
       - "first commit"
+      - "^chore"
 
 release:
   github:
@@ -56,10 +57,10 @@ archives:
     replacements:
       darwin: macos
 
-  # - format: binary
-  #   id: binary-archive
-  #   replacements:
-  #     darwin: macos
+  - format: binary
+    id: binary-archive
+    replacements:
+      darwin: macos
 
 dockers:
   - dockerfile: build/package/docker/Dockerfile
