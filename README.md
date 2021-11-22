@@ -49,6 +49,7 @@ Flags:
       --time int           time in seconds to transmit for (default 5)
       --timeout duration   scraping timeout (default 1m0s)
   -v, --version            print version
+      --wait duration      time to wait between download and upload runs (default 1s)
 ```
 
 ### Configuration
@@ -69,6 +70,7 @@ colors = false # disable colors. this is only usable if log.json is set to false
 
 [iperf3] # straight up iperf3 command line flag options
 time = 10 # this sets the --time flag of iperf3 to 10
+wait = "10s" # wait time between download and upload scrape
 ```
 
 #### Environment variables
