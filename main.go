@@ -57,7 +57,8 @@ type config struct {
 		Colors bool `validate:"required"`
 	}
 	Iperf3 struct {
-		Time int `validate:"required"`
+		Time int           `validate:"required"`
+		Wait time.Duration `validation:"required,min=1ms"`
 	}
 }
 
@@ -268,15 +269,20 @@ func probeHandler(w http.ResponseWriter, r *http.Request) {
 	logger.Info().Msg("getting download metrics")
 
 	if err := download(ctx, t, logger); err != nil {
+		scrapeErrors.Inc()
 		logger.Error().Err(err).Msg("could not create download metrics")
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 
 		return
 	}
 
+	logger.Debug().Dur("wait", c.Iperf3.Wait).Msg("waiting")
+	time.Sleep(c.Iperf3.Wait)
+
 	logger.Info().Msg("getting upload metrics")
 
 	if err := upload(ctx, t, logger); err != nil {
+		scrapeErrors.Inc()
 		logger.Error().Err(err).Msg("could not create upload metrics")
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 
@@ -350,6 +356,13 @@ func init() { //nolint:gochecknoinits,funlen
 	}
 
 	viper.SetDefault("iperf3.time", 5) //nolint:gomnd
+
+	// IPerf3.Wait.
+	rootCmd.PersistentFlags().Duration("wait", time.Second, "time to wait between download and upload runs")
+
+	if err := viper.BindPFlag("iperf3.wait", rootCmd.PersistentFlags().Lookup("wait")); err != nil {
+		log.Fatal().Err(err).Msg("could not bind flag")
+	}
 }
 
 func initConfig() {
