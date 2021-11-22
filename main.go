@@ -89,6 +89,8 @@ var (
 	uploadReceivedBytes         = metrics.NewFloatCounter("iperf3_upload_received_bytes")
 )
 
+var scrapeErrors = metrics.NewCounter("iperf3_errors")
+
 //nolint:tagliatelle
 type iperfResult struct {
 	End struct {
@@ -255,6 +257,7 @@ func probeHandler(w http.ResponseWriter, r *http.Request) {
 	// Extract port and host for target.
 	t, err := NewTarget(trgt)
 	if err != nil {
+		scrapeErrors.Inc()
 		logger.Error().Err(err).Msg("could not determine target")
 		http.Error(w, "could not determine target", http.StatusUnprocessableEntity)
 	}
