@@ -23,8 +23,6 @@ It runs the `iperf3` command as client. Once as server sends/client receives and
 docker run -d --name iperf3exporter ghcr.io/xsteadfastx/iperf3exporter:latest
 ```
 
-**Notice**: Please use a fixed version for productive use!
-
 ### via package
 
 You can get `apt`, `rpm` and `apk` packages on the [release page](https://github.com/xsteadfastx/iperf3exporter/releases). They also include an init file.
